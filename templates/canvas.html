@@ -1,7 +1,38 @@
 <!doctype html>
 <head>
-    <style type="text/css">
 
+    <title> 
+        The Canvas
+    </title>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+
+    <script type="text/javascript" charset="utf-8">
+        var socket = io();
+        socket.on('connect', function() {
+            socket.emit('my event', {data: 'I\'m connected!'});
+        });
+    </script>
+
+    <script type="text/javascript" charset="utf-8">
+        function initCanvas() {
+            var canvas = document.getElementById("mainCanvas");
+            canvas.addEventListener('click', function(event) {
+                var x = event.pageX - canvas.offsetLeft
+                var y = event.pageY - canvas.offsetTop
+                var ctxMod  = canvas.getContext("2d")
+                ctx.fillStyle = "#00FF00"
+                strokeW = 20.5
+                strokeH = 20.5
+                ctx.fillRect(x - strokeW / 2, y - strokeH / 2, 20.5, 20.5)
+            })
+            var ctx = canvas.getContext("2d");
+            ctx.fillStyle = "#FF1100";
+            ctx.fillRect(0,0,1000.5,500.5);
+        }
+    </script>
+
+    <style type="text/css">
         canvas {
             padding: 0;
             margin: auto;
@@ -13,25 +44,12 @@
             right: 0;
             background-color: white;
         }
-
     </style>
+    
 </head>
-<body style="background-color: gray;">
-    <canvas id="mainCanvas" width="1920px" height="1080px"></canvas>
-    <script>
 
-        var canvas = document.getElementById("mainCanvas");
-        canvas.addEventListener('click', function(event) {
-            var x = event.pageX - canvas.offsetLeft
-            var y = event.pageY - canvas.offsetTop
-            var ctxMod  = canvas.getContext("2d")
-            ctx.fillStyle = "#00FF00"
-            strokeW = 20.5
-            strokeH = 20.5
-            ctx.fillRect(x - strokeW / 2, y - strokeH / 2, 20.5, 20.5)
-        })
-        var ctx = canvas.getContext("2d");
-        ctx.fillStyle = "#FF0000";
-        ctx.fillRect(0,0,1000.5,500.5);
-    </script>
+<body style="background-color: gray;" onload="initCanvas()">
+
+    <canvas id="mainCanvas" width="1920px" height="1080px"></canvas>
+
 </body>
