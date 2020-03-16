@@ -1,0 +1,27 @@
+<!doctype html>
+<head>
+    <style type="text/css">
+
+        canvas {
+            padding: 0;
+            margin: auto;
+            display: block;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: white;
+        }
+
+    </style>
+</head>
+<body style="background-color: gray;">
+    <canvas id="mainCanvas" width="1920px" height="1080px"></canvas>
+    <script>
+        var canvas = document.getElementById("mainCanvas");
+        var ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#FF0000";
+        ctx.fillRect(0,0,1920/2,1080/2);
+    </script>
+</body>
