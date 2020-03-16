@@ -19,9 +19,19 @@
 <body style="background-color: gray;">
     <canvas id="mainCanvas" width="1920px" height="1080px"></canvas>
     <script>
+
         var canvas = document.getElementById("mainCanvas");
+        canvas.addEventListener('click', function(event) {
+            var x = event.pageX - canvas.offsetLeft
+            var y = event.pageY - canvas.offsetTop
+            var ctxMod  = canvas.getContext("2d")
+            ctx.fillStyle = "#00FF00"
+            strokeW = 20.5
+            strokeH = 20.5
+            ctx.fillRect(x - strokeW / 2, y - strokeH / 2, 20.5, 20.5)
+        })
         var ctx = canvas.getContext("2d");
         ctx.fillStyle = "#FF0000";
-        ctx.fillRect(0,0,1920/2,1080/2);
+        ctx.fillRect(0,0,1000.5,500.5);
     </script>
 </body>
