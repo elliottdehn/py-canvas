@@ -42,9 +42,7 @@
             socket.emit('load', {data: 'I\'m connected!'});
         });
 
-        socket.on('renderLine', function(line) {
-            drawLine(line)
-        })
+        socket.on('renderLine', drawLine)
     </script>
 
     <script type="text/javascript" charset="utf-8">
@@ -65,13 +63,7 @@
                 }
             })
 
-            canvas.addEventListener('mouseenter', function(event) {
-                if(!!line && line.drawing) {
-                    line.start = posFromEvent(event);
-                }
-            });
-
-            canvas.addEventListener('mousemove', function(event) {
+            document.body.addEventListener('mousemove', function(event) {
                 pos = posFromEvent(event);
                 if(!!line && line.drawing) {
                     line.end = pos;
