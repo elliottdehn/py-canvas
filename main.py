@@ -7,11 +7,13 @@ socketio = SocketIO(app)
 
 @app.route('/')
 def renderCanvas():
-    return render_template('canvas.html')
+    return render_template('canvas.html', async_mode=socketio.async_mode)
 
-@socketio.on('draw')
-def handle_draw_event(event):
-    print('received event: ' + event)
+@socketio.on('drawLine')
+def handle_draw(line):
+    print(line)
+    socketio.emit('renderLine', line)
+
 
 if __name__ == '__main__':
     socketio.run(app)

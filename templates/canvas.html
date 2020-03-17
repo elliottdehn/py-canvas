@@ -8,28 +8,88 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
 
     <script type="text/javascript" charset="utf-8">
-        var socket = io();
-        socket.on('connect', function() {
-            socket.emit('my event', {data: 'I\'m connected!'});
-        });
+        function posFromEvent(event) {
+            eventX = event.pageX - canvas.offsetLeft;
+            eventY = event.pageY - canvas.offsetTop;
+            return {x: eventX, y: eventY};
+        }
+
+        function drawLine(line) {
+            ctx.fillStyle = "#000000";
+            ctx.moveTo(line.start.x, line.start.y);
+            ctx.lineTo(line.end.x, line.end.y);
+            ctx.stroke();
+        }
+
+        function sendLine(line) {
+            socket.emit('drawLine', line)
+        }
+
+        function initLine(startPos) {
+            return {
+                drawing: false,
+                start: startPos,
+                end: undefined
+            };
+        }
+
     </script>
 
     <script type="text/javascript" charset="utf-8">
+        var socket = io();
+
+        socket.on('connect', function() {
+            socket.emit('load', {data: 'I\'m connected!'});
+        });
+
+        socket.on('renderLine', function(line) {
+            drawLine(line)
+        })
+    </script>
+
+    <script type="text/javascript" charset="utf-8">
+
+        var canvas, ctx;
+
+        line = undefined
+
         function initCanvas() {
-            var canvas = document.getElementById("mainCanvas");
-            canvas.addEventListener('click', function(event) {
-                var x = event.pageX - canvas.offsetLeft
-                var y = event.pageY - canvas.offsetTop
-                var ctxMod  = canvas.getContext("2d")
-                ctx.fillStyle = "#00FF00"
-                strokeW = 20.5
-                strokeH = 20.5
-                ctx.fillRect(x - strokeW / 2, y - strokeH / 2, 20.5, 20.5)
+
+            canvas = document.getElementById("mainCanvas");
+            ctx = canvas.getContext("2d");
+
+            document.body.addEventListener('mousedown', function(event) {
+                if(event.which == 1){
+                    line = initLine(posFromEvent(event));
+                    line.drawing = true;
+                }
             })
-            var ctx = canvas.getContext("2d");
+
+            canvas.addEventListener('mouseenter', function(event) {
+                if(!!line && line.drawing) {
+                    line.start = posFromEvent(event);
+                }
+            });
+
+            canvas.addEventListener('mousemove', function(event) {
+                pos = posFromEvent(event);
+                if(!!line && line.drawing) {
+                    line.end = pos;
+                    sendLine(line);
+                    line.start = pos;
+                }
+            });
+
+            document.body.addEventListener('mouseup', function(event) {
+                if(event.which == 1){
+                    line = initLine()
+                }
+            });
+
             ctx.fillStyle = "#FF1100";
             ctx.fillRect(0,0,1000.5,500.5);
         }
+
     </script>
 
     <style type="text/css">
@@ -44,11 +104,15 @@
             right: 0;
             background-color: white;
         }
+
+        body {
+            margin: 0mm 0mm 0mm 0mm;
+        }
     </style>
     
 </head>
 
-<body style="background-color: gray;" onload="initCanvas()">
+<body style="background-color: gray; width: 100vw; height: 100vh;" onload="initCanvas()">
 
     <canvas id="mainCanvas" width="1920px" height="1080px"></canvas>
 
