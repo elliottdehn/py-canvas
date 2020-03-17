@@ -33,6 +33,10 @@
             };
         }
 
+        function isOnCanvas(line) {
+            return (line.end.x >= 0 && line.end.y >= 0) || (line.start.x >= 0 && line.start.y >= 0)
+        }
+
     </script>
 
     <script type="text/javascript" charset="utf-8">
@@ -67,7 +71,9 @@
                 pos = posFromEvent(event);
                 if(!!line && line.drawing) {
                     line.end = pos;
-                    sendLine(line);
+                    if(isOnCanvas(line)){
+                        sendLine(line);
+                    }
                     line.start = pos;
                 }
             });
