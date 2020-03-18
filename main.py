@@ -1,5 +1,5 @@
 from flask import Flask, render_template
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, join_room
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -12,7 +12,11 @@ def renderCanvas():
 @socketio.on('drawLine')
 def handle_draw(line):
     print(line)
-    socketio.emit('renderLine', line)
+    socketio.emit('renderLine', line, room='connected')
+
+@socketio.on('connect')
+def handle_connect():
+    join_room('connected')
 
 
 if __name__ == '__main__':
