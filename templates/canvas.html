@@ -8,21 +8,46 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
 
     <script type="text/javascript" charset="utf-8">
+        var socket = io.connect(location.origin, {transports:['websocket']})
+    </script>
+
+    <script type="text/javascript" charset="utf-8">
+        function colorFlagToColor(flag) {
+            switch(flag) {
+                case 0:
+                    return "#000000";
+                default:
+                    return "#000000";
+            }
+        }
         function posFromEvent(event) {
             eventX = event.pageX - canvas.offsetLeft;
             eventY = event.pageY - canvas.offsetTop;
             return {x: eventX, y: eventY};
         }
 
-        function drawLine(line) {
-            ctx.fillStyle = "#000000";
-            ctx.moveTo(line.start.x, line.start.y);
-            ctx.lineTo(line.end.x, line.end.y);
+        function drawLine(bytes) {
+            const line = new DataView(bytes)
+            const startX = line.getUint16(0)
+            const startY = line.getUint16(2)
+            const endX = line.getUint16(4)
+            const endY = line.getUint16(6)
+            const colorFlag = line.getUint8(8)
+            ctx.fillStyle = colorFlagToColor(colorFlag)
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
             ctx.stroke();
         }
 
         function sendLine(line) {
-            socket.emit('drawLine', line)
+            const buffer = new ArrayBuffer(9)
+            const dv = new DataView(buffer)
+            dv.setUint16(0, line.start.x)
+            dv.setUint16(2, line.start.y)
+            dv.setUint16(4, line.end.x)
+            dv.setUint16(6, line.end.y)
+            dv.setUint8(8, 0)
+            socket.emit('d', buffer)
         }
 
         function initLine(startPos) {
@@ -40,8 +65,7 @@
     </script>
 
     <script type="text/javascript" charset="utf-8">
-        var socket = io();
-        socket.on('renderLine', drawLine)
+        socket.on('r', drawLine)
     </script>
 
     <script type="text/javascript" charset="utf-8">

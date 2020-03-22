@@ -10,10 +10,9 @@ socketio = SocketIO(app)
 def renderCanvas():
     return render_template('canvas.html', async_mode=socketio.async_mode)
 
-@socketio.on('drawLine')
+@socketio.on('d')
 def handle_draw(line):
-    print("Recieved: %s || bytes: %d" % (line, getsizeof(line)))
-    socketio.emit('renderLine', line, broadcast=True)
+    socketio.emit('r', line, broadcast=True)
 
 if __name__ == '__main__':
     socketio.run(app)
