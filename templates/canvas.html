@@ -8,16 +8,33 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
 
     <script type="text/javascript" charset="utf-8">
-        var socket = io.connect(location.origin, {transports:['websocket']})
+        var socket = io.connect(location.origin, {transports:['websocket']});
+        var colors = [
+            '#FFFFFF',
+            '#E4E4E4',
+            '#888888',
+            '#212121',
+            '#FFA7D0',
+            '#E20000',
+            '#E59500',
+            '#A06B43',
+            '#E6D802',
+            '#94E040',
+            '#09BF00',
+            '#00D3DC',
+            '#0085C6',
+            '#0700EB',
+            '#CD6DE2',
+            '#81007E'
+        ];
     </script>
 
     <script type="text/javascript" charset="utf-8">
         function colorFlagToColor(flag) {
-            switch(flag) {
-                case 0:
-                    return "#000000";
-                default:
-                    return "#000000";
+            if(!!flag && flag >= 0 && flag < colors.length){
+                return colors[flag];
+            } else {
+                return colors[2];
             }
         }
         function posFromEvent(event) {
@@ -26,53 +43,71 @@
             return {x: eventX, y: eventY};
         }
 
-        function drawLine(bytes) {
-            const line = new DataView(bytes)
-            const startX = line.getUint16(0)
-            const startY = line.getUint16(2)
-            const endX = line.getUint16(4)
-            const endY = line.getUint16(6)
-            const colorFlag = line.getUint8(8)
-            ctx.fillStyle = colorFlagToColor(colorFlag)
-            ctx.moveTo(startX, startY);
-            ctx.lineTo(endX, endY);
+        function bytesToLine(bytes) {
+            const startX = bytes.getInt16(0);
+            const startY = bytes.getInt16(2);
+            const endX = bytes.getInt16(4);
+            const endY = bytes.getInt16(6);
+            const c = colorFlagToColor(bytes.getUint8(8));
+            return {
+                start: {
+                    x: startX,
+                    y: startY
+                },
+                end: {
+                    x: endX,
+                    y: endY
+                },
+                color: c
+            };
+        }
+
+        function lineToBytes(line) {
+            const buffer = new ArrayBuffer(9);
+            const dv = new DataView(buffer);
+            dv.setInt16(0, line.start.x);
+            dv.setInt16(2, line.start.y);
+            dv.setInt16(4, line.end.x);
+            dv.setInt16(6, line.end.y);
+            dv.setUint8(8, line.color);
+            return buffer;
+        }
+
+        function drawLine(line) {
+            ctx.fillStyle = line.color;
+            ctx.moveTo(line.start.x, line.start.y);
+            ctx.lineTo(line.end.x, line.end.y);
             ctx.stroke();
         }
 
         function sendLine(line) {
-            const buffer = new ArrayBuffer(9)
-            const dv = new DataView(buffer)
-            dv.setUint16(0, line.start.x)
-            dv.setUint16(2, line.start.y)
-            dv.setUint16(4, line.end.x)
-            dv.setUint16(6, line.end.y)
-            dv.setUint8(8, 0)
-            socket.emit('d', buffer)
-        }
-
-        function initLine(startPos) {
-            return {
-                drawing: false,
-                start: startPos,
-                end: undefined
-            };
+            socket.emit('d', lineToBytes(line));
         }
 
         function isOnCanvas(line) {
-            return (line.end.x >= 0 && line.end.y >= 0) || (line.start.x >= 0 && line.start.y >= 0)
+            return (line.end.x >= 0 && line.end.y >= 0) || (line.start.x >= 0 && line.start.y >= 0);
         }
 
     </script>
 
     <script type="text/javascript" charset="utf-8">
-        socket.on('r', drawLine)
+        socket.on('r', (bytes) => drawLine(bytesToLine(new DataView(bytes))));
     </script>
 
     <script type="text/javascript" charset="utf-8">
 
         var canvas, ctx;
 
-        line = undefined
+        const initCursor = {
+            drawing: false,
+            line: {
+                start: undefined,
+                end: undefined,
+                color: 2
+            }
+        };
+
+        let cursor = initCursor;
 
         function initCanvas() {
 
@@ -81,32 +116,32 @@
 
             document.body.addEventListener('mousedown', function(event) {
                 if(event.which == 1){
-                    line = initLine(posFromEvent(event));
-                    line.drawing = true;
+                    cursor.line.start = posFromEvent(event);
+                    cursor.drawing = true;
                 }
             })
 
             document.body.addEventListener('mousemove', function(event) {
                 pos = posFromEvent(event);
-                if(!!line && line.drawing) {
-                    line.end = pos;
-                    if(isOnCanvas(line)){
-                        sendLine(line);
+                if(cursor.drawing) {
+                    cursor.line.end = posFromEvent(event);
+                    if(isOnCanvas(cursor.line)){
+                        sendLine(cursor.line);
                     }
-                    line.start = pos;
+                    cursor.line.start = pos;
                 }
             });
 
             document.body.addEventListener('mouseup', function(event) {
                 if(event.which == 1){
-                    line = initLine()
+                    cursor.drawing = false;
                 }
             });
 
             ctx.fillStyle = "#FF1100";
             ctx.fillRect(0,0,1000.5,500.5);
-            ctx.height = 1080
-            ctx.width = 1920
+            ctx.height = 1080;
+            ctx.width = 1920;
         }
 
     </script>
@@ -115,6 +150,8 @@
         canvas {
             margin: auto;
             position: absolute;
+            height: 1080px;
+            width: 1920px;
             top: 0;
             bottom: 0;
             left: 0;
