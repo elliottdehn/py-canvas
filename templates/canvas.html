@@ -140,8 +140,8 @@
 
             ctx.fillStyle = "#FF1100";
             ctx.fillRect(0,0,1000.5,500.5);
-            ctx.height = 1080;
-            ctx.width = 1920;
+            ctx.height = 800;
+            ctx.width = 1600;
         }
 
     </script>
@@ -150,23 +150,22 @@
         canvas {
             margin: auto;
             position: absolute;
-            height: 1080px;
-            width: 1920px;
+            height: 800px;
+            width: 1600px;
             top: 0;
             bottom: 0;
             left: 0;
             right: 0;
-            background-color: rgb(62, 121, 39);
+            background-color: white;
         }
 
         body {
             position: relative;
             margin: 0;
-            padding: 15px;
             width: 100vw;
             height: 100vh;
-            min-height: 1080px;
-            min-width: 1920px;
+            min-height: 800px;
+            min-width: 1600px;
         }
     </style>
     
@@ -174,6 +173,6 @@
 
 <body style="background-color:#333333;" onload="initCanvas()">
     <div>
-        <canvas id="mainCanvas" width="1920px" height="1080px"></canvas>
+        <canvas id="mainCanvas" width="1600px" height="800px"></canvas>
     </div>
 </body>       
