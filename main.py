@@ -1,5 +1,6 @@
 from flask import Flask, render_template
 from flask_socketio import SocketIO, join_room
+from sys import getsizeof
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -11,13 +12,8 @@ def renderCanvas():
 
 @socketio.on('drawLine')
 def handle_draw(line):
-    print(line)
-    socketio.emit('renderLine', line, room='connected')
-
-@socketio.on('connect')
-def handle_connect():
-    join_room('connected')
-
+    print("Recieved: %s || bytes: %d" % (line, getsizeof(line)))
+    socketio.emit('renderLine', line, broadcast=True)
 
 if __name__ == '__main__':
     socketio.run(app)
