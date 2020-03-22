@@ -86,8 +86,6 @@
 
             ctx.fillStyle = "#FF1100";
             ctx.fillRect(0,0,1000.5,500.5);
-            ctx.style.width = window.innerWidth * 0.90;
-            ctx.style.height = window.innerWidth * 0.90 * (1080/1920)
             ctx.height = 1080
             ctx.width = 1920
         }
@@ -102,12 +100,13 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background-color: white;
+            background-color: rgb(62, 121, 39);
         }
 
         body {
-            padding: 25px;
             position: relative;
+            margin: 0;
+            padding: 25px;
             width: 100vw;
             height: 100vh;
             min-height: 1080px;
