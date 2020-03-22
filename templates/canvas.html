@@ -86,6 +86,10 @@
 
             ctx.fillStyle = "#FF1100";
             ctx.fillRect(0,0,1000.5,500.5);
+            ctx.style.width = window.innerWidth * 0.90;
+            ctx.style.height = window.innerWidth * 0.90 * (1080/1920)
+            ctx.height = 1080
+            ctx.width = 1920
         }
 
     </script>
@@ -95,7 +99,6 @@
             padding: 0;
             margin: auto;
             display: block;
-            position: absolute;
             top: 0;
             bottom: 0;
             left: 0;
@@ -104,14 +107,17 @@
         }
 
         body {
-            margin: 0mm 0mm 0mm 0mm;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
         }
     </style>
     
 </head>
 
-<body style="background-color: gray; width: 100vw; height: 100vh;" onload="initCanvas()">
-
-    <canvas id="mainCanvas" width="1920px" height="1080px"></canvas>
-
-</body>
+<body style="background-color:#333333;" onload="initCanvas()">
+    <div>
+        <canvas id="mainCanvas" width="1920px" height="1080px"></canvas>
+    </div>
+</body>       
