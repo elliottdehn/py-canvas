@@ -122,18 +122,24 @@
 
         function initColors() {
             const topRow = document.getElementById("colorRow0");
+
             range(low=0, colors.length)
                 .map(i => "color" + i)
                 .forEach((id, idx) => {
-                        console.log(id);
-                        colorSelector = topRow.insertCell()
-                        colorSelector.style.background = colorFlagToColor(idx);
-                        colorSelector.style.width = "30px";
-                        colorSelector.style.height = "30px";
-                        colorSelector.onclick = () => {
+                        let thisSelector = topRow.insertCell()
+                        thisSelector.id = id;
+                        thisSelector.style.background = colorFlagToColor(idx);
+                        thisSelector.style.width = "30px";
+                        thisSelector.style.height = "30px";
+                        thisSelector.setAttribute("class", "colorSelector")
+                        thisSelector.onclick = () => {
+                            let selectors = document.getElementsByClassName("colorSelector");
+                            [].forEach.call(selectors, (selector) => selector.classList.remove("selected"));
+                            thisSelector.classList.add("selected")
                             cursor.line.color = idx;
                         }
-                    });
+                        
+                });
         };
 
         function initCanvas() {
@@ -169,8 +175,6 @@
                 }
             });
 
-            ctx.fillStyle = "#FF1100";
-            ctx.fillRect(0,0,1000.5,500.5);
             ctx.height = 800;
             ctx.width = 1600;
         }
@@ -202,6 +206,10 @@
             height: 100vh;
             min-height: 800px;
             min-width: 1600px;
+        }
+
+        .selected {
+            transform: scale(0.7);
         }
 
     </style>
