@@ -11,7 +11,6 @@
         var socket = io.connect(location.origin, {transports:['websocket']});
         var colors = [
             '#FFFFFF',
-            '#E4E4E4',
             '#888888',
             '#212121',
             '#FFA7D0',
@@ -30,13 +29,15 @@
     </script>
 
     <script type="text/javascript" charset="utf-8">
+
         function colorFlagToColor(flag) {
-            if(!!flag && flag >= 0 && flag < colors.length){
+            if(flag >= 0 && flag < colors.length){
                 return colors[flag];
             } else {
                 return colors[2];
             }
         }
+
         function posFromEvent(event) {
             eventX = event.pageX - canvas.offsetLeft;
             eventY = event.pageY - canvas.offsetTop;
@@ -74,10 +75,12 @@
         }
 
         function drawLine(line) {
-            ctx.fillStyle = line.color;
+            ctx.beginPath();
             ctx.moveTo(line.start.x, line.start.y);
             ctx.lineTo(line.end.x, line.end.y);
+            ctx.strokeStyle = line.color;
             ctx.stroke();
+            ctx.closePath();
         }
 
         function sendLine(line) {
@@ -86,6 +89,14 @@
 
         function isOnCanvas(line) {
             return (line.end.x >= 0 && line.end.y >= 0) || (line.start.x >= 0 && line.start.y >= 0);
+        }
+
+        function range(low=0, high) {
+            var list = [];
+            for (var i = low; i < high; i++) {
+                list.push(i);
+            }
+            return list
         }
 
     </script>
@@ -109,6 +120,22 @@
 
         let cursor = initCursor;
 
+        function initColors() {
+            const topRow = document.getElementById("colorRow0");
+            range(low=0, colors.length)
+                .map(i => "color" + i)
+                .forEach((id, idx) => {
+                        console.log(id);
+                        colorSelector = topRow.insertCell()
+                        colorSelector.style.background = colorFlagToColor(idx);
+                        colorSelector.style.width = "30px";
+                        colorSelector.style.height = "30px";
+                        colorSelector.onclick = () => {
+                            cursor.line.color = idx;
+                        }
+                    });
+        };
+
         function initCanvas() {
 
             canvas = document.getElementById("mainCanvas");
@@ -120,6 +147,10 @@
                     cursor.drawing = true;
                 }
             })
+
+            document.body.addEventListener('mouseleave', function(event) {
+                cursor.drawing = false
+            });
 
             document.body.addEventListener('mousemove', function(event) {
                 pos = posFromEvent(event);
@@ -142,6 +173,11 @@
             ctx.fillRect(0,0,1000.5,500.5);
             ctx.height = 800;
             ctx.width = 1600;
+        }
+
+        function init() {
+            initCanvas();
+            initColors();
         }
 
     </script>
@@ -167,11 +203,15 @@
             min-height: 800px;
             min-width: 1600px;
         }
+
     </style>
     
 </head>
 
-<body style="background-color:#030303;" onload="initCanvas()">
+<body style="background-color:#434343;" onload="init()">
+    <table>
+        <tr id="colorRow0"></tr>
+    </table>
     <div>
         <canvas id="mainCanvas" width="1600px" height="800px"></canvas>
     </div>
