@@ -79,6 +79,7 @@
             ctx.moveTo(line.start.x, line.start.y);
             ctx.lineTo(line.end.x, line.end.y);
             ctx.strokeStyle = line.color;
+            ctx.lineWidth = 1;
             ctx.stroke();
             ctx.closePath();
         }
@@ -126,16 +127,15 @@
             range(low=0, colors.length)
                 .map(i => "color" + i)
                 .forEach((id, idx) => {
-                        let thisSelector = topRow.insertCell()
-                        thisSelector.id = id;
+                        let thisSelector = topRow.insertCell();
                         thisSelector.style.background = colorFlagToColor(idx);
                         thisSelector.style.width = "30px";
                         thisSelector.style.height = "30px";
-                        thisSelector.setAttribute("class", "colorSelector")
+                        thisSelector.setAttribute("class", "colorSelector");
                         thisSelector.onclick = () => {
                             let selectors = document.getElementsByClassName("colorSelector");
                             [].forEach.call(selectors, (selector) => selector.classList.remove("selected"));
-                            thisSelector.classList.add("selected")
+                            thisSelector.classList.add("selected");
                             cursor.line.color = idx;
                         }
                         
@@ -175,8 +175,8 @@
                 }
             });
 
-            ctx.height = 800;
-            ctx.width = 1600;
+            ctx.height = 8000;
+            ctx.width = 16000;
         }
 
         function init() {
@@ -190,6 +190,7 @@
         canvas {
             margin: auto;
             position: absolute;
+            z-index: 0;
             height: 800px;
             width: 1600px;
             top: 0;
@@ -202,14 +203,29 @@
         body {
             position: relative;
             margin: 0;
+            padding: 0;
             width: 100vw;
             height: 100vh;
             min-height: 800px;
             min-width: 1600px;
         }
 
+        #colorSelectors {
+            z-index: 1;
+            background-color: white;
+            border: 3px solid black;
+            border-radius: 5px;
+            position: fixed;
+            top:10px;
+            left:10px;
+        }
+
+        .colorSelector:hover {
+            transform: scale(0.85);
+        }
+
         .selected {
-            transform: scale(0.7);
+            transform: scale(0.7) !important;
         }
 
     </style>
@@ -217,7 +233,7 @@
 </head>
 
 <body style="background-color:#434343;" onload="init()">
-    <table>
+    <table id="colorSelectors">
         <tr id="colorRow0"></tr>
     </table>
     <div>
