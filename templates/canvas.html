@@ -64,12 +64,12 @@
                 return range(f=start.y, l=end.y)
                             .map(yIdx => {
                                 return {x: start.x, y: yIdx};
-                            });
+                            }).forEach(pt => render(pt));
             } else if (start.y === end.y) {
                 return range(f=start.x, l=end.x)
                             .map(xIdx => {
                                 return {x: xIdx, y: start.y};
-                            });
+                            }).forEach(pt => render(pt));
             }
 
             let dx = Math.abs(end.x - start.x);
