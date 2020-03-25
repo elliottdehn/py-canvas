@@ -1,21 +1,21 @@
 from flask import Flask, render_template
 from flask_socketio import SocketIO, join_room
 from sys import getsizeof
-from experiments import SimpleDB, Event
+from persistence import SimpleDBv2, Event
 from queue import Queue
 from threading import Thread
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
-db = SimpleDB()
+db = SimpleDBv2()
 
 write_buffer = Queue(-1)
 class Consumer(Thread):
-    def __init__(self, q: Queue, f):
+    def __init__(self, que: Queue, func):
         super(Consumer, self).__init__()
-        self.buffer = q
-        self.f = f
+        self.buffer = que
+        self.f = func
 
     def run(self):
         for elm in iter(self.buffer.get, None):
