@@ -1,14 +1,14 @@
 from flask import Flask, render_template
 from flask_socketio import SocketIO, join_room
 from sys import getsizeof
-from persistence import SimpleDBv2, Event
+from persistence.event.events import SimpleDBv2, Event
 from queue import Queue
 from threading import Thread
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
-db = SimpleDBv2()
+db = SimpleDBv2("events.db")
 
 write_buffer = Queue(-1)
 class Consumer(Thread):
