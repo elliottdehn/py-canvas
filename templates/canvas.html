@@ -155,7 +155,9 @@
         }
 
         function isOnCanvas(line) {
-            return (line.end.x >= 0 && line.end.y >= 0) || (line.start.x >= 0 && line.start.y >= 0);
+            let start_in_bounds = (line.start.x >= 0 && line.start.y >= 0) && (line.start.x < 1600 && line.start.y < 800)
+            let end_in_bounds = (line.end.x >= 0 && line.end.y >= 0) && (line.end.x < 1600 && line.end.y < 800)
+            return start_in_bounds || end_in_bounds
         }
 
     </script>
@@ -259,7 +261,7 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background-color: white;
+            background-color: black;
         }
 
         #wrapper {
