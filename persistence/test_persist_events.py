@@ -49,7 +49,7 @@ class TestEventsDB(unittest.TestCase):
         self.assertFalse(first.is_connected(second))
 
     def test_db_get_tail_one_event(self):
-        db = SimpleDBv2("test_events.db")
+        db = get_db()
         event = Event(sx=5, sy=10, ex=100, ey=150, c_flag=10)
         expected = Link(x=100, y=150, c_flag=10)
         db.addEvent(event)
@@ -58,7 +58,7 @@ class TestEventsDB(unittest.TestCase):
         self.assertEqual(expected, result)
     
     def test_db_get_tail_two_event_connected(self):
-        db = SimpleDBv2("test_events.db")
+        db = get_db()
         event1 = Event(sx=5, sy=10, ex=100, ey=150, c_flag=10)
         event2 = Event(sx=100, sy=150, ex=200, ey=300, c_flag=10)
         expected = Link(x=200, y=300, c_flag=10)
@@ -69,7 +69,7 @@ class TestEventsDB(unittest.TestCase):
         self.assertEqual(expected, result)
 
     def test_db_get_tail_two_event_disconnected(self):
-        db = SimpleDBv2("test_events.db")
+        db = get_db()
         event1 = Event(sx=5, sy=10, ex=100, ey=150, c_flag=10)
         event2 = Event(sx=120, sy=130, ex=200, ey=300, c_flag=10)
         expected = Link(x=200, y=300, c_flag=10)
@@ -77,10 +77,18 @@ class TestEventsDB(unittest.TestCase):
         db.addEvent(event2)
         result = db.get_tail(count=1)[0]
         db.close()
-        self.assertEqual(expected, result)  
+        self.assertEqual(expected, result)
+
+    def test_db_add_event_point(self):
+        db = get_db()
+        event = Event(sx=10,sy=15,ex=10,ey=15,c_flag=10)
+        expected = to_bytearray([pos(10), pos(15), color(10), pos(10), pos(15), color(10)])
+        result = db.addEvent(event)
+        db.close()
+        self.assertEqual(expected, result)
     
     def test_db_add_event_one(self):
-        db = SimpleDBv2("test_events.db")
+        db = get_db()
         event = Event(sx=5, sy=10, ex=100, ey=150, c_flag=10)
         expected = to_bytearray([pos(5), pos(10), color(10), pos(100), pos(150), color(10)])
         result = db.addEvent(event)
@@ -88,7 +96,7 @@ class TestEventsDB(unittest.TestCase):
         self.assertEqual(expected, result)
     
     def test_db_add_event_two_connected(self):
-        db = SimpleDBv2("test_events.db")
+        db = get_db()
         event_1 = Event(sx=5, sy=10, ex=100, ey=150, c_flag=10)
         event_2 = Event(sx=100, sy=150, ex=120, ey=130, c_flag=10)
         expected = to_bytearray([ \
@@ -100,7 +108,7 @@ class TestEventsDB(unittest.TestCase):
         self.assertEqual(expected, result)
     
     def test_db_add_event_two_disconnected(self):
-        db = SimpleDBv2("test_events.db")
+        db = get_db()
         event_1 = Event(sx=5, sy=10, ex=100, ey=150, c_flag=10)
         event_2 = Event(sx=200, sy=300, ex=120, ey=130, c_flag=10)
         expected = to_bytearray([ \
@@ -113,7 +121,7 @@ class TestEventsDB(unittest.TestCase):
         self.assertEqual(expected, result)
         
     def test_db_add_event_two_disconnected_color(self):
-        db = SimpleDBv2("test_events.db")
+        db = get_db()
         event_1 = Event(sx=5, sy=10, ex=100, ey=150, c_flag=10)
         event_2 = Event(sx=100, sy=150, ex=120, ey=130, c_flag=11)
         expected = to_bytearray([ \
@@ -127,7 +135,13 @@ class TestEventsDB(unittest.TestCase):
     
     @classmethod
     def tearDownClass(cls):
-        os.remove("./test_events.db")
+        kill_db()
+
+def get_db():
+    return SimpleDBv2("test_events.db")
+
+def kill_db():
+    os.remove("test_events.db")
     
 def pos(i):
     return (i, 2)
