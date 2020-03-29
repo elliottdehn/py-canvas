@@ -9,10 +9,13 @@ class Pixel:
 
 class Canvas:
 
-    def __init__(self, width: int, height: int):
-        self.arr = [[0]*width]*height
-        self.width = width
-        self.height = height
+    def __init__(self, width: int, height: int, db = None):
+        if not db:
+            self.arr = [[0]*width]*height
+            self.width = width
+            self.height = height
+        else:
+            pass # TODO: Initialize the canvas from db
     
     # Top left is 0,0
     def get_pixel(self, x: int, y: int):

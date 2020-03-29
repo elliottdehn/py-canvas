@@ -10,7 +10,12 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
 db = SimpleDBv2("events.db")
-canvas = Canvas(width=1600, height=800)
+
+# TODO: Init canvas from DB
+canvas = Canvas(width=1600, height=800, db=SimpleDBv2("events.db"))
+
+# TODO: Send canvas down to client and render it
+# TODO: Host this somewhere
 
 write_buffer = Queue(-1)
 class Consumer(Thread):

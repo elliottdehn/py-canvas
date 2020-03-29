@@ -1,6 +1,7 @@
 from typing import List
 from collections import namedtuple
 from itertools import chain
+from threading import Lock
 import os
 
 """
@@ -13,15 +14,16 @@ Using a SQL library will come later.
 # Made as immutable as possible
 class Link:
     bytes_per = 5
-    def __init__(self, bytearr: bytes = None, x: int = None, y: int = None, c_flag: int = None, prev: 'Link' = None, next: 'Link' = None):
+    terminal_flag = 255
+    def __init__(self, bytearr: bytes = None, x: int = None, y: int = None, c_flag: int = None, prev: 'Link' = None, nxt: 'Link' = None):
         if not bytearr:
             bytearr = bytearray()
             bytearr += x.to_bytes(2, "big")
             bytearr += y.to_bytes(2, "big")
             bytearr += c_flag.to_bytes(1, "big")
         self.bs = bytearr
-        self.next = None
-        self.prev = None
+        self.next = nxt
+        self.prev = prev
 
     def __eq__(self, value):
         if not isinstance(value, Link):
@@ -58,20 +60,27 @@ class Link:
         return b_arr
         
     def clone(self) -> 'Link':
-        return Link(x=self.get_x(), y=self.get_y(), c_flag=self.get_c_flag(), prev=self.prev, next=self.next)
+        return Link(x=self.get_x(), y=self.get_y(), c_flag=self.get_c_flag(), prev=self.prev, nxt=self.next)
     
     def clone_as_terminal(self) -> 'Link':
-        return Link(x=self.get_x(), y=self.get_y(), c_flag=255, prev=self.prev, next=self.next)
+        return Link(x=self.get_x(), y=self.get_y(), c_flag=Link.terminal_flag, prev=self.prev, nxt=self.next)
+    
+    def is_terminal(self) -> bool:
+        return self.get_c_flag() == Link.terminal_flag
     
     def is_connected(self, next_link: 'Link') -> bool:
         return self == next_link
     
     def set_next(self, next_link: 'Link') -> 'Link':
-        new_self = self.clone() if self.is_connected(next_link) else self.clone_as_terminal()
-        new_next = next_link.next if self.is_connected(next_link) else next_link
+        new_self = self.clone()
+        new_next = next_link.clone()
+        if(not next_link.is_terminal() and self.is_connected(next_link)):
+            new_next = next_link.next
+        elif not self.is_connected(next_link):
+            new_self = new_self.clone_as_terminal()
         new_self.next = new_next
         if new_next: new_next.prev = new_self
-        if new_self.prev: new_self.prev.set_next(new_self)
+        if new_self.prev: new_self.prev.next = new_self
         return new_self
 
 class Event:
@@ -134,34 +143,68 @@ class EventCR:
         """Fetch event #s in sequence"""
         pass
 
+    def getAllEventsGen(self, blocklength: int) -> List[Event]:
+        """Get all events, block-by-block"""
+        pass
+
 class SimpleDBv2(EventCR):
     def __init__(self, fname: str):
         self.db = open(fname, "wb+")
         self.fname = os.path.basename(self.db.name)
+        self.lock = Lock()
 
     def addEvent(self, e: Event) -> bytearray:
-        print("Event: %s" %(str(e)))
-        tail = self.__get_tail()
+        self.lock.acquire()
+        tail = self.get_tail(count=1)
         next_link = e.as_link()
-        last_link_head = tail.set_next(next_link) if tail else next_link
-        return self.__write_link(last_link_head)
-
-    def __get_tail(self, count=1) -> Link:
+        last_link_head = tail[0].set_next(next_link) if tail else next_link
+        written = self.__write_link(last_link_head)
+        self.lock.release()
+        return written
+    
+    # We'll lock, read the links, and convert them into Events
+    def getAllEventsGen(self, blocklength: int) -> List[List[Event]]:
+        self.lock.acquire()
         fsize = os.stat(self.fname).st_size
-        tailsize = count * Link.bytes_per
-        if fsize < tailsize:
+        # By using a lock, we can create a closure synchronizing on fsize
+        # fsize will never decrease due to a write
+        def gen():
+            startId = 0
+            while (start * Link.bytes_per) < fsize:
+                yield getEvents(startId=startId, count=blocklength)
+                startId += blocklength
+        self.lock.release()
+        return gen
+    
+    # Since only the last byte can change during a write
+    # if we aren't concerned with it, we don't need to lock
+    def getEvents(self, startId: int, count: int) -> List[Event]:
+        return self.__get_links_block(startId=startId, count=count)
+    
+    def __get_links_block(self, startId: int, count: int) -> List[Link]:
+        if count == 0:
+            return []
+        fsize = self.__fsize()
+        blocksize = count * Link.bytes_per
+        if fsize < blocksize:
+            return self.__get_links_block(startId=startId, count=(fsize // Link.bytes_per) - startId)
+        self.db.seek(startId * Link.bytes_per)
+        res = self.db.read(startId * Link.bytes_per)
+        return list(map(lambda link_bytes: Link(link_bytes), chunks(res, Link.bytes_per)))
+
+    def __fsize(self):
+        return os.stat(self.fname).st_size
+
+    def get_tail(self, count=1) -> Link:
+        fsize = self.__fsize()
+        if fsize < Link.bytes_per:
             return None
-        self.db.seek(-1 * tailsize, os.SEEK_END)
-        res = self.db.read()
-        print("tail %s" % (Link(bytearr=res)))
-        return Link(bytearr=res)
+        startByte = fsize - (count * Link.bytes_per)
+        return self.__get_links_block(startId=(startByte // Link.bytes_per), count=count)
 
     def __write_link(self, link: Link):
-        print("written %s" % str(link))
         link_as_bytes = link.as_bytes()
-        seek_start = max(0, os.stat(self.fname).st_size - Link.bytes_per)
-        print("write start: %d" % (seek_start))
-        print("write bytes: %d" % (len(link_as_bytes)))
+        seek_start = max(0, self.__fsize() - Link.bytes_per)
         self.db.seek(seek_start)
         self.db.write(link_as_bytes)
         self.db.flush()
@@ -170,3 +213,8 @@ class SimpleDBv2(EventCR):
 
     def close(self):
         self.db.close()
+    
+def chunks(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
