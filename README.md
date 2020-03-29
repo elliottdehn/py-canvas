@@ -3,8 +3,6 @@ One Collective Sketchpad
 
 As of writing this, I am currently hosting this application locally for the purpose of making it available to "onlookers."
 
-The ngrok link is here: http://1d60cceb.ngrok.io
-
 If you click that, you'll be able to draw on the canvas, and even invite your co-workers. You'll be able to see each other drawing.
 
 
