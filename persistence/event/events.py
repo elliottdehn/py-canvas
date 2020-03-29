@@ -140,30 +140,32 @@ class SimpleDBv2(EventCR):
         self.fname = os.path.basename(self.db.name)
 
     def addEvent(self, e: Event) -> bytearray:
+        print("Event: %s" %(str(e)))
         tail = self.__get_tail()
         next_link = e.as_link()
         last_link_head = tail.set_next(next_link) if tail else next_link
-        return self.__write_link(last_link_head, commit=True)
+        return self.__write_link(last_link_head)
 
     def __get_tail(self, count=1) -> Link:
         fsize = os.stat(self.fname).st_size
         tailsize = count * Link.bytes_per
         if fsize < tailsize:
             return None
-        off = fsize - tailsize
         self.db.seek(-1 * tailsize, os.SEEK_END)
         res = self.db.read()
+        print("tail %s" % (Link(bytearr=res)))
         return Link(bytearr=res)
 
-    def __write_link(self, link: Link, commit=True):
+    def __write_link(self, link: Link):
+        print("written %s" % str(link))
         link_as_bytes = link.as_bytes()
-        self.db.seek(0, os.SEEK_END)
-        seek_start = max(0, self.db.tell() - len(link_as_bytes))
-        self.db.seek(-1*seek_start, os.SEEK_END)
+        seek_start = max(0, os.stat(self.fname).st_size - Link.bytes_per)
+        print("write start: %d" % (seek_start))
+        print("write bytes: %d" % (len(link_as_bytes)))
+        self.db.seek(seek_start)
         self.db.write(link_as_bytes)
-        if commit:
-            self.db.flush()
-            os.fsync(self.db.fileno())
+        self.db.flush()
+        os.fsync(self.db.fileno())
         return link_as_bytes
 
     def close(self):

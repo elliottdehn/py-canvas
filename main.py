@@ -32,10 +32,12 @@ def renderCanvas():
 @socketio.on('d')
 def handle_draw(line):
     write_buffer.put(line)
+
     line_e = Event(line)
     start_pixel = Pixel(line_e.get_sx(), line_e.get_sy(), line_e.get_c_flag())
     end_pixel = Pixel(line_e.get_ex(), line_e.get_ey(), line_e.get_c_flag())
     canvas.set_line(start_pixel, end_pixel)
+
     socketio.emit('r', line, broadcast=True)
 
 if __name__ == '__main__':
