@@ -1,5 +1,6 @@
 import unittest
 from event.events import Link, Event, SimpleDBv2
+from canvas import Canvas, Pixel
 import os
 
 class TestEventsDB(unittest.TestCase):

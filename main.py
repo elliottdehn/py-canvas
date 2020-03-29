@@ -4,7 +4,7 @@ from sys import getsizeof
 from persistence.event.events import SimpleDBv2, Event
 from queue import Queue
 from threading import Thread
-from canvas import Canvas, Pixel
+from canvas.canvas import Canvas, Pixel
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
