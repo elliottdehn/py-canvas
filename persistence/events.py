@@ -160,8 +160,6 @@ class Event:
                     except StopIteration:
                         break
             except StopIteration:
-                    print("fail")
-
         return event_gen()
 
 class EventCR:
