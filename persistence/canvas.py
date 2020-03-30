@@ -1,4 +1,6 @@
 from typing import List
+from threading import Lock
+import itertools
 
 class Pixel:
 
@@ -10,9 +12,10 @@ class Pixel:
 class Canvas:
 
     def __init__(self, width: int, height: int, db = None):
-        self.arr = [[0]*width]*height
+        self.arr = list(Canvas.__chunks([0]*width*height, width))
         self.width = width
         self.height= height
+        self.lock = Lock()
         if db:
             evs = db.getAllEvents(blocklength=500)
             for ev in evs:
@@ -20,26 +23,35 @@ class Canvas:
                 end_pixel = Pixel(x=ev.get_ex(),y=ev.get_ey(),c_flag=ev.get_c_flag())
                 self.set_line(start_pixel, end_pixel)
     
-    # Top left is 0,0
+    # Top left is 0,0 // for tests only
     def get_pixel(self, x: int, y: int):
-        return Pixel(x, y, self.arr[y][x])
-    
-    def set_pixel_pos(self, x, y, c_flag):
-        return self.set_pixel(Pixel(x, y, c_flag))
-    
-    def set_pixel(self, p: Pixel) -> 'Canvas':
-        self.arr[p.y][p.x] = p.c_flag
-        return self
+        self.lock.acquire()
+        res = Pixel(x, y, self.arr[y][x])
+        self.lock.release()
+        return res
     
     def set_line(self, start: Pixel, end: Pixel) -> 'Canvas':
+        self.lock.acquire()
         self.__render_line( \
             start.x, start.y, end.x, end.y, \
-            lambda x,y: self.set_pixel_pos(x, y, start.c_flag))
+            lambda x,y: self.__set_pixel_pos(x, y, start.c_flag))
+        self.lock.release()
         return self
     
-    def __into_boundary(self, n: int, mi: int, mx: int) -> int:
-        n = min(mx, n)
-        return max(mi, n)
+    def as_bytes(self):
+        self.lock.acquire()
+        bytearr = bytearray()
+        for c_flag in itertools.chain.from_iterable(self.arr):
+            bytearr += c_flag.to_bytes(1, "big")
+        self.lock.release()
+        return bytes(bytearr)
+    
+    def __set_pixel_pos(self, x, y, c_flag):
+        return self.__set_pixel(Pixel(x, y, c_flag))
+    
+    def __set_pixel(self, p: Pixel) -> 'Canvas':
+        self.arr[p.y][p.x] = p.c_flag
+        return self
 
     # Bresenham's algorithm implemented from wikipedia
     def __render_line(self, x0: int, y0: int, x1: int, y1: int, f):
@@ -63,7 +75,17 @@ class Canvas:
                 err += dx
                 y0 += sy
     
-    def set_pixels(self, pixels: List[Pixel]) -> 'Canvas':
+    def __into_boundary(self, n: int, mi: int, mx: int) -> int:
+        n = min(mx, n)
+        return max(mi, n)
+    
+    def __set_pixels(self, pixels: List[Pixel]) -> 'Canvas':
         for pixel in pixels:
-            self.set_pixel(pixel)
+            self.__set_pixel(pixel)
         return self
+    
+    @staticmethod
+    def __chunks(lst, n):
+        """Yield successive n-sized chunks from lst."""
+        for i in range(0, len(lst), n):
+            yield lst[i:i + n]

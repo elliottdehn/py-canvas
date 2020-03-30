@@ -18,8 +18,8 @@ class Link:
     def __init__(self, bytearr: bytes = None, x: int = None, y: int = None, c_flag: int = None, prev: 'Link' = None, nxt: 'Link' = None):
         if not bytearr:
             bytearr = bytearray()
-            bytearr += x.to_bytes(2, "big")
-            bytearr += y.to_bytes(2, "big")
+            bytearr += x.to_bytes(2, "big", signed=True)
+            bytearr += y.to_bytes(2, "big", signed=True)
             bytearr += c_flag.to_bytes(1, "big")
         self.bs = bytearr
         self.next = nxt
@@ -39,10 +39,10 @@ class Link:
         return " -> ".join(s_arr)
 
     def get_x(self):
-        return int.from_bytes(self.bs[0:2], "big")
+        return int.from_bytes(self.bs[0:2], "big", signed=True)
 
     def get_y(self):
-        return int.from_bytes(self.bs[2:4], "big")
+        return int.from_bytes(self.bs[2:4], "big", signed=True)
 
     def get_c_flag(self):
         return int.from_bytes(self.bs[4:], "big")
@@ -89,10 +89,10 @@ class Event:
             self.bs = bs
         else:
             b_arr = bytearray()
-            b_arr += sx.to_bytes(2, "big")
-            b_arr += sy.to_bytes(2, "big")
-            b_arr += ex.to_bytes(2, "big")
-            b_arr += ey.to_bytes(2, "big")
+            b_arr += sx.to_bytes(2, "big", signed=True)
+            b_arr += sy.to_bytes(2, "big", signed=True)
+            b_arr += ex.to_bytes(2, "big", signed=True)
+            b_arr += ey.to_bytes(2, "big", signed=True)
             b_arr += c_flag.to_bytes(1, "big")
             self.bs = b_arr
 
@@ -105,16 +105,16 @@ class Event:
         return str(self.as_tuple())
 
     def get_sx(self):
-        return int.from_bytes(self.bs[0:2], "big")
+        return int.from_bytes(self.bs[0:2], "big", signed=True)
 
     def get_sy(self):
-        return int.from_bytes(self.bs[2:4], "big")
+        return int.from_bytes(self.bs[2:4], "big", signed=True)
 
     def get_ex(self):
-        return int.from_bytes(self.bs[4:6], "big")
+        return int.from_bytes(self.bs[4:6], "big", signed=True)
 
     def get_ey(self):
-        return int.from_bytes(self.bs[6:8], "big")
+        return int.from_bytes(self.bs[6:8], "big", signed=True)
 
     def get_c_flag(self):
         return int.from_bytes(self.bs[8:], "big")
@@ -160,6 +160,7 @@ class Event:
                     except StopIteration:
                         break
             except StopIteration:
+                pass
         return event_gen()
 
 class EventCR:
