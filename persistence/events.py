@@ -137,7 +137,7 @@ class Event:
         return event_tuple(sx=self.get_sx(), sy=self.get_sy(), ex=self.get_ex(), ey=self.get_ey(), c_flag=self.get_c_flag())
     
     @staticmethod
-    def from_links(left: Link, right: Link) -> 'Event':
+    def from_link_pair(left: Link, right: Link) -> 'Event':
         if left.is_terminal(): return None
         if left.get_c_flag() == right.get_c_flag() or right.is_terminal():
             return Event(sx=left.get_x(), sy=left.get_y(), ex=right.get_x(), ey=right.get_y(), c_flag=left.get_c_flag())
@@ -145,23 +145,23 @@ class Event:
 
     
     @staticmethod
-    def from_link_list(links: Iterable[Link]) -> Iterable['Event']:
-        if len(links) < 2:
-            return None
-
+    def from_links(links: Iterable[Link]) -> Iterable['Event']:
         def event_gen():
             iterator = iter(links)
-            curr_left = next(iterator)
-            curr_right = next(iterator)
-            while True:
-                try:
-                    ev = Event.from_links(curr_left, curr_right)
-                    if ev: yield ev
-                    curr_left = curr_right
-                    curr_right = next(iterator)  
-                except StopIteration:
-                    break
-                
+            try:
+                curr_left = next(iterator)
+                curr_right = next(iterator)
+                while True:
+                    try:
+                        ev = Event.from_link_pair(curr_left, curr_right)
+                        if ev: yield ev
+                        curr_left = curr_right
+                        curr_right = next(iterator)  
+                    except StopIteration:
+                        break
+            except StopIteration:
+                    print("fail")
+
         return event_gen()
 
 class EventCR:
@@ -173,7 +173,7 @@ class EventCR:
         """Fetch event #s in sequence"""
         pass
 
-    def getAllEventsGen(self, blocklength: int) -> List[Link]:
+    def getAllEvents(self, blocklength: int) -> List[Link]:
         """Get all events, block-by-block"""
         pass
 
@@ -207,14 +207,14 @@ class SimpleDBv2(EventCR):
         # Only the last byte of the file can change, which is a byte we ignore here
         def link_gen():
             startId = 0
-            while (start * Link.bytes_per) < fsize:
+            while (startId * Link.bytes_per) < fsize:
                 yield self.__get_links_block(startId=startId, count=blocklength)
                 startId += blocklength
         
-        return Event.from_link_list(chain.from_iterable(link_gen()))
+        return Event.from_links(chain.from_iterable(link_gen()))
     
     # Since only the last byte can change during a write
-    # if we aren't concerned with it, we don't need to lock
+    # and we aren't concerned with it, we don't need to lock
     def __get_links_block(self, startId: int, count: int) -> Iterable[Link]:
         if count == 0:
             return []
@@ -223,7 +223,7 @@ class SimpleDBv2(EventCR):
         if fsize < blocksize:
             return self.__get_links_block(startId=startId, count=(fsize // Link.bytes_per) - startId)
         self.db.seek(startId * Link.bytes_per)
-        res = self.db.read(startId * Link.bytes_per)
+        res = self.db.read(blocksize)
         return list(map(lambda link_bytes: Link(link_bytes), chunks(res, Link.bytes_per)))
 
     def get_tail(self, count=1) -> Link:

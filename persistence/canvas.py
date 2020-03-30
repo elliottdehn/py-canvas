@@ -10,12 +10,15 @@ class Pixel:
 class Canvas:
 
     def __init__(self, width: int, height: int, db = None):
-        if not db:
-            self.arr = [[0]*width]*height
-            self.width = width
-            self.height = height
-        else:
-            pass # TODO: Initialize the canvas from db
+        self.arr = [[0]*width]*height
+        self.width = width
+        self.height= height
+        if db:
+            evs = db.getAllEvents(blocklength=500)
+            for ev in evs:
+                start_pixel = Pixel(x=ev.get_sx(),y=ev.get_sy(),c_flag=ev.get_c_flag())
+                end_pixel = Pixel(x=ev.get_ex(),y=ev.get_ey(),c_flag=ev.get_c_flag())
+                self.set_line(start_pixel, end_pixel)
     
     # Top left is 0,0
     def get_pixel(self, x: int, y: int):
