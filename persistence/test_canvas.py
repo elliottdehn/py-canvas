@@ -4,7 +4,6 @@ import unittest
 class TestCanvas(unittest.TestCase):
 
     def test_set_line_diagonals(self):
-        
         c = 10
         start_idx = 100
         end_idx = 200
