@@ -138,7 +138,7 @@ class TestEventsDB(unittest.TestCase):
         kill_db()
 
 def get_db():
-    return SimpleDBv2("test_events.db")
+    return SimpleDBv2("test_events.db", "wb+")
 
 def kill_db():
     os.remove("test_events.db")

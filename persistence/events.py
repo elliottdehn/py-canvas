@@ -178,8 +178,8 @@ class EventCR:
         pass
 
 class SimpleDBv2(EventCR):
-    def __init__(self, fname: str):
-        self.db = open(fname, "wb+")
+    def __init__(self, fname: str, mode: str):
+        self.db = open(fname, mode)
         self.fname = os.path.basename(self.db.name)
         self.lock = Lock()
 

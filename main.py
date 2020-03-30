@@ -9,7 +9,7 @@ from canvas.canvas import Canvas, Pixel
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
-db = SimpleDBv2("events.db")
+db = SimpleDBv2("events.db", "ab+")
 
 # TODO: Init canvas from DB
 canvas = Canvas(width=1600, height=800, db=SimpleDBv2("events.db"))
